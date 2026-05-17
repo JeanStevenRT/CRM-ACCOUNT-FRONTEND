@@ -1,0 +1,127 @@
+.declaration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.declaration-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.declaration-client-search {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.declaration-client-results {
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.declaration-client-item {
+  width: 100%;
+  border: none;
+  background-color: #ffffff;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.declaration-client-item:last-child {
+  border-bottom: none;
+}
+
+.declaration-client-item:hover,
+.declaration-client-item.active {
+  background-color: #eff6ff;
+}
+
+.declaration-client-item strong {
+  color: #111827;
+}
+
+.declaration-client-item span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.declaration-client-empty {
+  padding: 14px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.declaration-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.declaration-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.declaration-form input,
+.declaration-form textarea {
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+  background-color: #ffffff;
+}
+
+.declaration-form input {
+  height: 42px;
+}
+
+.declaration-form textarea {
+  padding-top: 10px;
+  resize: vertical;
+}
+
+.declaration-form input:focus,
+.declaration-form textarea:focus {
+  border-color: #2563eb;
+}
+
+.declaration-checkbox {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 10px !important;
+  padding-top: 26px;
+}
+
+.declaration-checkbox input {
+  width: 18px;
+  height: 18px;
+}
+
+.declaration-form-full {
+  grid-column: 1 / -1;
+}
+
+.declaration-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+.declaration-form input[readonly] {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  cursor: not-allowed;
+}

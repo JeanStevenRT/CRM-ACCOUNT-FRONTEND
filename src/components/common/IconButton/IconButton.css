@@ -1,0 +1,37 @@
+.icon-button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background-color: #ffffff;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.icon-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-button:hover {
+  background-color: #f3f4f6;
+}
+
+.icon-button-view {
+  color: #2563eb;
+}
+
+.icon-button-edit {
+  color: #ca8a04;
+}
+
+.icon-button-danger {
+  color: #dc2626;
+}
+
+.icon-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

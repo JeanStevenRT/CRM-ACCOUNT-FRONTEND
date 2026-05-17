@@ -1,0 +1,43 @@
+.client-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.client-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.client-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.client-form input,
+.client-form select {
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+  background-color: #ffffff;
+}
+
+.client-form input:focus,
+.client-form select:focus {
+  border-color: #2563eb;
+}
+
+.client-form-full {
+  grid-column: 1 / -1;
+}
+
+.client-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}

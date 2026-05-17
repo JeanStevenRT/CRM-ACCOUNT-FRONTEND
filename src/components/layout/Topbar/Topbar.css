@@ -1,0 +1,17 @@
+.topbar {
+  height: 64px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.topbar-menu-button {
+  border: none;
+  background-color: transparent;
+  font-size: 20px;
+  cursor: pointer;
+  color: #111827;
+}
