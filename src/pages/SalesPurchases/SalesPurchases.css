@@ -126,6 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 14px;
 }
 
@@ -133,6 +134,18 @@
   margin: 0;
   color: #111827;
   font-size: 20px;
+}
+
+.table-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-section-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .editable-table-wrapper {
@@ -193,4 +206,113 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
+}
+
+.import-file-input {
+  display: none;
+}
+
+.import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.import-preview-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.import-preview-summary span {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.import-warning {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background-color: #fffbeb;
+  color: #92400e;
+  font-size: 14px;
+}
+
+.import-preview-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.import-preview-group h3 {
+  margin: 4px 0 0;
+  color: #111827;
+  font-size: 16px;
+}
+
+.import-preview-table-wrapper {
+  width: 100%;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+}
+
+.import-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.import-preview-table th {
+  position: sticky;
+  top: 0;
+  padding: 11px 12px;
+  background-color: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.import-preview-table td {
+  padding: 10px 12px;
+  border-top: 1px solid #e5e7eb;
+  color: #111827;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.import-preview-table .import-preview-empty {
+  padding: 22px;
+  color: #6b7280;
+  text-align: center;
+}
+
+.import-preview-note {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+@media (max-width: 780px) {
+  .sales-purchases-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .load-box {
+    padding-top: 0;
+  }
+
+  .table-section-header,
+  .table-section-actions,
+  .sales-purchases-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }

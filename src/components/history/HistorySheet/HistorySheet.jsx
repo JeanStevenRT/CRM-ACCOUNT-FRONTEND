@@ -12,6 +12,7 @@ const normalizeRows = (rows, minRows = 8) => {
     serie: '',
     numero: '',
     ruc: '',
+    tasa: 18,
     base: 0,
     igv: 0,
     total: 0,
@@ -46,7 +47,7 @@ const HistorySheet = ({ data , compact = false}) => {
               <th>Fecha</th>
               <th>Serie</th>
               <th>Número</th>
-              <th>RUC</th>
+              <th>Tasa</th>
               <th>Base</th>
               <th>IGV</th>
               <th>Total</th>
@@ -59,7 +60,7 @@ const HistorySheet = ({ data , compact = false}) => {
                 <td>{formatDate(item.fecha)}</td>
                 <td>{item.serie}</td>
                 <td>{item.numero}</td>
-                <td>{item.ruc || '-'}</td>
+                <td>{Number(item.tasa || 0)}%</td>
                 <td>{Number(item.base || 0).toFixed(2)}</td>
                 <td>{Number(item.igv || 0).toFixed(2)}</td>
                 <td>{Number(item.total || 0).toFixed(2)}</td>
@@ -85,7 +86,7 @@ const HistorySheet = ({ data , compact = false}) => {
               <th>Fecha</th>
               <th>Serie</th>
               <th>Número</th>
-              <th>RUC</th>
+              <th>Tasa</th>
               <th>Base</th>
               <th>IGV</th>
               <th>Total</th>
@@ -98,7 +99,7 @@ const HistorySheet = ({ data , compact = false}) => {
                 <td>{formatDate(item.fecha)}</td>
                 <td>{item.serie}</td>
                 <td>{item.numero}</td>
-                <td>{item.ruc || '-'}</td>
+                <td>{Number(item.tasa || 0)}%</td>
                 <td>{Number(item.base || 0).toFixed(2)}</td>
                 <td>{Number(item.igv || 0).toFixed(2)}</td>
                 <td>{Number(item.total || 0).toFixed(2)}</td>

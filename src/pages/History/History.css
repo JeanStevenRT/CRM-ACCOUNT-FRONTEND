@@ -136,6 +136,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .history-horizontal-wrapper {
@@ -183,6 +184,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   margin-bottom: 12px;
 }
 
@@ -190,6 +192,14 @@
   font-weight: 800;
   color: #0f2344;
   text-transform: uppercase;
+}
+
+.history-month-export-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .history-month-card-actions button {
@@ -228,5 +238,12 @@
   .history-month-card {
     flex-basis: 100%;
     min-width: 320px;
+  }
+
+  .history-export-actions,
+  .history-month-card-actions,
+  .history-month-export-buttons {
+    align-items: stretch;
+    flex-direction: column;
   }
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { FiDownload, FiFileText } from 'react-icons/fi';
+import { FiDownload, FiFileText, FiGrid } from 'react-icons/fi';
 
 import SearchInput from '../../components/common/SearchInput/SearchInput';
 import Select from '../../components/common/Select/Select';
@@ -159,6 +159,28 @@ const History = () => {
     }
   };
 
+  const exportMonthExcel = async (historyItem) => {
+    try {
+      setExporting(true);
+
+      const clientName = `${historyItem.cliente.nombres}-${historyItem.cliente.apellidos || ''}`
+        .trim()
+        .replaceAll(' ', '-');
+
+      const fileName = `historial-${clientName}-${getMonthName(historyItem.declaracion.mes)}-${historyItem.declaracion.anio}.xlsx`;
+      const { exportHistoryMonthToExcel } = await import('../../utils/exportHistoryExcel');
+
+      await exportHistoryMonthToExcel({
+        historyItem,
+        fileName,
+      });
+    } catch (error) {
+      alert(error.message || 'Error al exportar Excel');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const exportAll = async () => {
     if (historyList.length === 0) {
       alert('Primero carga el historial');
@@ -179,6 +201,31 @@ const History = () => {
       });
     } catch (error) {
       alert(error.message || 'Error al exportar todo el historial');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportAllExcel = async () => {
+    if (historyList.length === 0) {
+      alert('Primero carga el historial');
+      return;
+    }
+
+    try {
+      setExporting(true);
+
+      const clientName = `${selectedClient.nombres}-${selectedClient.apellidos || ''}`
+        .trim()
+        .replaceAll(' ', '-');
+      const { exportHistoryListToExcel } = await import('../../utils/exportHistoryExcel');
+
+      await exportHistoryListToExcel({
+        historyList,
+        fileName: `historial-completo-${clientName}-${selectedYear}.xlsx`,
+      });
+    } catch (error) {
+      alert(error.message || 'Error al exportar todo el historial en Excel');
     } finally {
       setExporting(false);
     }
@@ -284,7 +331,12 @@ const History = () => {
           <div className="history-export-actions">
             <Button onClick={exportAll} disabled={exporting}>
               <FiDownload />
-              {exporting ? 'Exportando...' : 'Descargar todo'}
+              {exporting ? 'Exportando...' : 'Descargar todo PDF'}
+            </Button>
+
+            <Button variant="secondary" onClick={exportAllExcel} disabled={exporting}>
+              <FiGrid />
+              {exporting ? 'Exportando...' : 'Descargar todo Excel'}
             </Button>
           </div>
 
@@ -305,14 +357,25 @@ const History = () => {
                       {getMonthName(historyItem.declaracion.mes)} {historyItem.declaracion.anio}
                     </span>
 
-                    <button
-                      type="button"
-                      onClick={() => exportMonth(historyItem)}
-                      disabled={exporting}
-                    >
-                      <FiDownload />
-                      PDF
-                    </button>
+                    <div className="history-month-export-buttons">
+                      <button
+                        type="button"
+                        onClick={() => exportMonth(historyItem)}
+                        disabled={exporting}
+                      >
+                        <FiDownload />
+                        PDF
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => exportMonthExcel(historyItem)}
+                        disabled={exporting}
+                      >
+                        <FiGrid />
+                        Excel
+                      </button>
+                    </div>
                   </div>
 
                   <div id={`history-sheet-${historyItem.declaracion.id}`}>

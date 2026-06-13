@@ -1,11 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { FiTrash2, FiRefreshCw, FiSave } from 'react-icons/fi';
+import { FiTrash2, FiRefreshCw, FiSave, FiUpload } from 'react-icons/fi';
 
 import SearchInput from '../../components/common/SearchInput/SearchInput';
 import Select from '../../components/common/Select/Select';
 import Button from '../../components/common/Button/Button';
 import IconButton from '../../components/common/IconButton/IconButton';
+import Modal from '../../components/common/Modal/Modal';
 
 import { getClientsRequest, getClientByIdRequest } from '../../services/clients.service';
 import {
@@ -30,6 +31,7 @@ import {
 
 import { useDebounce } from '../../hooks/useDebounce';
 import { formatMoney, getMonthName } from '../../utils/formatters';
+import { parseSalesPurchasesSpreadsheet } from '../../utils/spreadsheetImport';
 
 import './SalesPurchases.css';
 
@@ -99,8 +101,15 @@ const SalesPurchases = () => {
   const [loadingDeclaration, setLoadingDeclaration] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [importModalOpen, setImportModalOpen] = useState(false);
+  const [importSalesRows, setImportSalesRows] = useState([]);
+  const [importPurchaseRows, setImportPurchaseRows] = useState([]);
+  const [invalidImportRows, setInvalidImportRows] = useState([]);
+  const [importSheetName, setImportSheetName] = useState('');
+  const [importing, setImporting] = useState(false);
 
   const [searchParams] = useSearchParams();
+  const importInputRef = useRef(null);
 
   const debouncedClientSearch = useDebounce(clientSearch, 400);
 
@@ -129,6 +138,32 @@ const SalesPurchases = () => {
       { base: 0, igv: 0, total: 0 }
     );
   }, [purchaseRows]);
+
+  const importSalesTotals = useMemo(() => {
+    return importSalesRows.reduce(
+      (acc, row) => {
+        const { igv, total } = calculateRow(row);
+        acc.base += Number(row.base || 0);
+        acc.igv += igv;
+        acc.total += total;
+        return acc;
+      },
+      { base: 0, igv: 0, total: 0 }
+    );
+  }, [importSalesRows]);
+
+  const importPurchaseTotals = useMemo(() => {
+    return importPurchaseRows.reduce(
+      (acc, row) => {
+        const { igv, total } = calculateRow(row);
+        acc.base += Number(row.base || 0);
+        acc.igv += igv;
+        acc.total += total;
+        return acc;
+      },
+      { base: 0, igv: 0, total: 0 }
+    );
+  }, [importPurchaseRows]);
 
     const loadRowsByDeclaration = useCallback(async (declaration) => {
     setSelectedDeclaration(declaration);
@@ -387,6 +422,99 @@ const SalesPurchases = () => {
     }
   };
 
+  const openImportPicker = () => {
+    if (!selectedDeclaration) {
+      alert('Primero carga una declaracion existente para importar el Excel');
+      return;
+    }
+
+    importInputRef.current?.click();
+  };
+
+  const handleImportFile = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    try {
+      const preferredSheetName = selectedMonth
+        ? `${getMonthName(selectedMonth)} ${selectedYear}`
+        : '';
+      const [salesResult, purchasesResult] = await Promise.all([
+        parseSalesPurchasesSpreadsheet(file, 'sales', preferredSheetName),
+        parseSalesPurchasesSpreadsheet(file, 'purchases', preferredSheetName),
+      ]);
+
+      if (salesResult.rows.length === 0 && purchasesResult.rows.length === 0) {
+        alert('No se encontraron filas validas de ventas o compras para importar');
+        return;
+      }
+
+      setImportSalesRows(salesResult.rows);
+      setImportPurchaseRows(purchasesResult.rows);
+      setInvalidImportRows([
+        ...salesResult.invalidRows.map((row) => ({ ...row, type: 'Ventas' })),
+        ...purchasesResult.invalidRows.map((row) => ({ ...row, type: 'Compras' })),
+      ]);
+      setImportSheetName(salesResult.sheetName || purchasesResult.sheetName || file.name);
+      setImportModalOpen(true);
+    } catch (error) {
+      alert(error.message || 'Error al leer el archivo Excel');
+    }
+  };
+
+  const closeImportModal = (force = false) => {
+    if (importing && !force) return;
+
+    setImportModalOpen(false);
+    setImportSalesRows([]);
+    setImportPurchaseRows([]);
+    setInvalidImportRows([]);
+    setImportSheetName('');
+  };
+
+  const confirmImport = async () => {
+    const totalRows = importSalesRows.length + importPurchaseRows.length;
+    if (!selectedDeclaration || totalRows === 0) return;
+
+    try {
+      setImporting(true);
+
+      for (const row of importSalesRows) {
+        const payload = {
+          fecha: row.fecha || null,
+          serie: row.serie || null,
+          numero: row.numero || null,
+          tasa: Number(row.tasa),
+          base: Number(row.base || 0),
+        };
+
+        await createSaleRequest(selectedDeclaration.id, payload);
+      }
+
+      for (const row of importPurchaseRows) {
+        const payload = {
+          fecha: row.fecha || null,
+          serie: row.serie || null,
+          numero: row.numero || null,
+          tasa: Number(row.tasa),
+          base: Number(row.base || 0),
+        };
+
+        await createPurchaseRequest(selectedDeclaration.id, payload);
+      }
+
+      await loadDeclarationData();
+      setMessage(`${importSalesRows.length} ventas y ${importPurchaseRows.length} compras importadas correctamente.`);
+      closeImportModal(true);
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error al importar el archivo');
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const recalculate = async () => {
     if (!selectedDeclaration) {
       alert('Primero carga una declaración existente');
@@ -590,9 +718,11 @@ const SalesPurchases = () => {
         <div className="table-section-header">
           <h2>Ventas</h2>
 
-          <Button variant="secondary" onClick={() => addRow('sales')}>
-            + Agregar fila
-          </Button>
+          <div className="table-section-actions">
+            <Button variant="secondary" onClick={() => addRow('sales')}>
+              + Agregar fila
+            </Button>
+          </div>
         </div>
 
         <div className="editable-table-wrapper">
@@ -629,9 +759,11 @@ const SalesPurchases = () => {
         <div className="table-section-header">
           <h2>Compras</h2>
 
-          <Button variant="secondary" onClick={() => addRow('purchases')}>
-            + Agregar fila
-          </Button>
+          <div className="table-section-actions">
+            <Button variant="secondary" onClick={() => addRow('purchases')}>
+              + Agregar fila
+            </Button>
+          </div>
         </div>
 
         <div className="editable-table-wrapper">
@@ -667,6 +799,14 @@ const SalesPurchases = () => {
       <div className="sales-purchases-actions">
         <Button
           variant="secondary"
+          onClick={openImportPicker}
+          disabled={saving || !selectedDeclaration}
+        >
+          <FiUpload /> Importar Excel
+        </Button>
+
+        <Button
+          variant="secondary"
           onClick={recalculate}
           disabled={saving || !selectedDeclaration}
         >
@@ -680,6 +820,158 @@ const SalesPurchases = () => {
           <FiSave /> {saving ? 'Guardando...' : 'Guardar compras y ventas'}
         </Button>
       </div>
+
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".xlsx,.xls,.csv"
+        className="import-file-input"
+        onChange={handleImportFile}
+      />
+
+      <Modal
+        open={importModalOpen}
+        title="Importar compras y ventas"
+        onClose={closeImportModal}
+        size="lg"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeImportModal} disabled={importing}>
+              Cancelar
+            </Button>
+
+            <Button
+              onClick={confirmImport}
+              disabled={importing || importSalesRows.length + importPurchaseRows.length === 0}
+            >
+              {importing ? 'Importando...' : `Importar ${importSalesRows.length + importPurchaseRows.length} filas`}
+            </Button>
+          </>
+        }
+      >
+        <div className="import-preview">
+          <div className="import-preview-summary">
+            <span>Hoja: {importSheetName || '-'}</span>
+            <span>Ventas: {importSalesRows.length}</span>
+            <span>Compras: {importPurchaseRows.length}</span>
+            <span>Filas omitidas: {invalidImportRows.length}</span>
+          </div>
+
+          {invalidImportRows.length > 0 && (
+            <div className="import-warning">
+              Se omitieron filas con base vacia o invalida. Revisa el archivo si faltan comprobantes.
+            </div>
+          )}
+
+          <div className="import-preview-group">
+            <h3>Ventas</h3>
+            <div className="import-preview-summary">
+              <span>Base: {formatMoney(importSalesTotals.base)}</span>
+              <span>IGV: {formatMoney(importSalesTotals.igv)}</span>
+              <span>Total: {formatMoney(importSalesTotals.total)}</span>
+            </div>
+
+            <div className="import-preview-table-wrapper">
+              <table className="import-preview-table">
+                <thead>
+                  <tr>
+                    <th>Fila</th>
+                    <th>Fecha</th>
+                    <th>Serie</th>
+                    <th>Numero</th>
+                    <th>Tasa</th>
+                    <th>Base</th>
+                    <th>IGV</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {importSalesRows.slice(0, 12).map((row) => {
+                    const { igv, total } = calculateRow(row);
+
+                    return (
+                      <tr key={`sale-${row.sourceRow}-${row.serie}-${row.numero}`}>
+                        <td>{row.sourceRow}</td>
+                        <td>{row.fecha || '-'}</td>
+                        <td>{row.serie || '-'}</td>
+                        <td>{row.numero || '-'}</td>
+                        <td>{row.tasa}%</td>
+                        <td>{formatMoney(row.base)}</td>
+                        <td>{formatMoney(igv)}</td>
+                        <td>{formatMoney(total)}</td>
+                      </tr>
+                    );
+                  })}
+
+                  {importSalesRows.length === 0 && (
+                    <tr>
+                      <td colSpan="8" className="import-preview-empty">No se encontraron ventas</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="import-preview-group">
+            <h3>Compras</h3>
+            <div className="import-preview-summary">
+              <span>Base: {formatMoney(importPurchaseTotals.base)}</span>
+              <span>IGV: {formatMoney(importPurchaseTotals.igv)}</span>
+              <span>Total: {formatMoney(importPurchaseTotals.total)}</span>
+            </div>
+
+            <div className="import-preview-table-wrapper">
+              <table className="import-preview-table">
+                <thead>
+                  <tr>
+                    <th>Fila</th>
+                    <th>Fecha</th>
+                    <th>Serie</th>
+                    <th>Numero</th>
+                    <th>Tasa</th>
+                    <th>Base</th>
+                    <th>IGV</th>
+                    <th>Total</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {importPurchaseRows.slice(0, 12).map((row) => {
+                    const { igv, total } = calculateRow(row);
+
+                    return (
+                      <tr key={`purchase-${row.sourceRow}-${row.serie}-${row.numero}`}>
+                        <td>{row.sourceRow}</td>
+                        <td>{row.fecha || '-'}</td>
+                        <td>{row.serie || '-'}</td>
+                        <td>{row.numero || '-'}</td>
+                        <td>{row.tasa}%</td>
+                        <td>{formatMoney(row.base)}</td>
+                        <td>{formatMoney(igv)}</td>
+                        <td>{formatMoney(total)}</td>
+                      </tr>
+                    );
+                  })}
+
+                  {importPurchaseRows.length === 0 && (
+                    <tr>
+                      <td colSpan="8" className="import-preview-empty">No se encontraron compras</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {importSalesRows.length + importPurchaseRows.length > 24 && (
+            <p className="import-preview-note">
+              Vista previa limitada a 12 filas por seccion. Se importaran todas las filas validas.
+            </p>
+          )}
+        </div>
+      </Modal>
     </section>
   );
 };
