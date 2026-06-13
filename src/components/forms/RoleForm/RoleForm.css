@@ -1,0 +1,31 @@
+.role-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.role-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #374151;
+  font-size: 14px;
+}
+
+.role-form input {
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+  background-color: #ffffff;
+}
+
+.role-form input:focus {
+  border-color: #2563eb;
+}
+
+.role-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}

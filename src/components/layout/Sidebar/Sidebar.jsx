@@ -1,11 +1,15 @@
 import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
 import { ChevronDownIcon } from '../../common/Icons/Icons';
+import { useAuth } from '../../../hooks/useAuth';
 import './Sidebar.css';
 
 const Sidebar = () => {
+  const { user } = useAuth();
   const [clientsOpen, setClientsOpen] = useState(true);
   const [declarationsOpen, setDeclarationsOpen] = useState(true);
+  const [usersOpen, setUsersOpen] = useState(true);
+  const canManageUsers = user?.role === 'superadmin';
 
   return (
     <aside className="sidebar">
@@ -99,6 +103,41 @@ const Sidebar = () => {
         >
           Deudores
         </NavLink>
+
+        {canManageUsers && (
+          <>
+            <button
+              type="button"
+              className={`sidebar-group-button ${usersOpen ? 'open' : ''}`}
+              onClick={() => setUsersOpen((prev) => !prev)}
+            >
+              <span>Usuarios</span>
+              <ChevronDownIcon />
+            </button>
+
+            {usersOpen && (
+              <div className="sidebar-submenu">
+                <NavLink
+                  to="/users"
+                  className={({ isActive }) =>
+                    isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
+                  }
+                >
+                  Gestionar usuarios
+                </NavLink>
+
+                <NavLink
+                  to="/users/roles"
+                  className={({ isActive }) =>
+                    isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
+                  }
+                >
+                  Gestionar roles
+                </NavLink>
+              </div>
+            )}
+          </>
+        )}
       </nav>
     </aside>
   );

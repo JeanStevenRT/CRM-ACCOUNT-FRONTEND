@@ -9,11 +9,38 @@
 
 :root{
   font-size: 17px;
+  --font-family-heading: 'Montserrat', Arial, sans-serif;
+  --font-family-body: 'Roboto', Arial, sans-serif;
+  --font-size-xs: 0.705rem;
+  --font-size-sm: 0.823rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.176rem;
+  --font-size-xl: 1.647rem;
+  --font-size-2xl: 2.353rem;
+  --font-size-3xl: 3.059rem;
+  --line-height-tight: 1.08;
+  --line-height-title: 1.18;
+  --line-height-body: 1.55;
   --color-primary: #0f2344;
   --color-secondary: #2563EB;
   --color-background: #f4f7fb;
   --color-text: #111827;
   --color-muted: #6b7280;
+  --home-bg: #030405;
+  --home-bg-soft: #090c12;
+  --home-bg-panel: #0d0f11;
+  --home-bg-card: #101113;
+  --home-border: rgba(174, 195, 255, 0.14);
+  --home-border-strong: rgba(174, 195, 255, 0.28);
+  --home-text: #f4f7ff;
+  --home-text-muted: #aab4c8;
+  --home-text-soft: #dce5ff;
+  --home-accent: #a9c4ff;
+  --home-accent-strong: #78a6ff;
+  --home-cyan: #11d5e9;
+  --home-green: #19e68c;
+  --home-coral: #ff8d80;
+  --home-shadow: 0 28px 80px rgba(0, 0, 0, 0.46);
   }
 
 html,
@@ -25,7 +52,7 @@ body,
 }
 
 body {
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: var(--font-family-body);
   color: #111827;
   background-color: #f4f7fb;
   overflow: hidden;
@@ -37,7 +64,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: 'Montserrat', Arial, sans-serif;
+  font-family: var(--font-family-heading);
 }
 
 p,
@@ -46,7 +73,7 @@ small,
 td,
 th,
 li {
-  font-family: 'Roboto', Arial, sans-serif;
+  font-family: var(--font-family-body);
 }
 
 label,
@@ -54,10 +81,10 @@ button,
 input,
 select,
 textarea {
-  font-family: 'Montserrat', Arial, sans-serif;
+  font-family: var(--font-family-heading);
 }
 
 input::placeholder,
 textarea::placeholder {
-  font-family: 'Montserrat', Arial, sans-serif;
+  font-family: var(--font-family-heading);
 }
