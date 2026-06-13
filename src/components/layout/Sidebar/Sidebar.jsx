@@ -1,10 +1,23 @@
 import { NavLink } from 'react-router-dom';
 import { useState } from 'react';
+import {
+  FiArchive,
+  FiBarChart2,
+  FiBriefcase,
+  FiClock,
+  FiCreditCard,
+  FiFileText,
+  FiGrid,
+  FiList,
+  FiShoppingCart,
+  FiUserCheck,
+  FiUsers,
+} from 'react-icons/fi';
 import { ChevronDownIcon } from '../../common/Icons/Icons';
 import { useAuth } from '../../../hooks/useAuth';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ open = true, onNavigate }) => {
   const { user } = useAuth();
   const [clientsOpen, setClientsOpen] = useState(true);
   const [declarationsOpen, setDeclarationsOpen] = useState(true);
@@ -12,17 +25,19 @@ const Sidebar = () => {
   const canManageUsers = user?.role === 'superadmin';
 
   return (
-    <aside className="sidebar">
+    <aside className={open ? 'sidebar open' : 'sidebar closed'}>
       <div className="sidebar-logo">Account CRM</div>
 
       <nav className="sidebar-nav">
         <NavLink
           to="/dashboard"
+          onClick={onNavigate}
           className={({ isActive }) =>
             isActive ? 'sidebar-link active' : 'sidebar-link'
           }
         >
-          Dashboard
+          <FiGrid className="sidebar-item-icon" />
+          <span>Dashboard</span>
         </NavLink>
 
         <button
@@ -30,7 +45,10 @@ const Sidebar = () => {
           className={`sidebar-group-button ${clientsOpen ? 'open' : ''}`}
           onClick={() => setClientsOpen((prev) => !prev)}
         >
-          <span>Clientes</span>
+          <span className="sidebar-group-label">
+            <FiUsers className="sidebar-item-icon" />
+            Clientes
+          </span>
           <ChevronDownIcon />
         </button>
 
@@ -38,20 +56,24 @@ const Sidebar = () => {
           <div className="sidebar-submenu">
             <NavLink
               to="/clients"
+              onClick={onNavigate}
               className={({ isActive }) =>
                 isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
               }
             >
-              Listar clientes
+              <FiList className="sidebar-item-icon" />
+              <span>Listar clientes</span>
             </NavLink>
 
             <NavLink
               to="/clients/retired"
+              onClick={onNavigate}
               className={({ isActive }) =>
                 isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
               }
             >
-              Clientes retirados
+              <FiUserCheck className="sidebar-item-icon" />
+              <span>Clientes retirados</span>
             </NavLink>
           </div>
         )}
@@ -61,7 +83,10 @@ const Sidebar = () => {
           className={`sidebar-group-button ${declarationsOpen ? 'open' : ''}`}
           onClick={() => setDeclarationsOpen((prev) => !prev)}
         >
-          <span>Declaraciones</span>
+          <span className="sidebar-group-label">
+            <FiFileText className="sidebar-item-icon" />
+            Declaraciones
+          </span>
           <ChevronDownIcon />
         </button>
 
@@ -69,39 +94,47 @@ const Sidebar = () => {
           <div className="sidebar-submenu">
             <NavLink
               to="/declarations"
+              onClick={onNavigate}
               className={({ isActive }) =>
                 isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
               }
             >
-              Listar declaraciones
+              <FiArchive className="sidebar-item-icon" />
+              <span>Listar declaraciones</span>
             </NavLink>
 
             <NavLink
               to="/declarations/sales-purchases"
+              onClick={onNavigate}
               className={({ isActive }) =>
                 isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
               }
             >
-              Compras y ventas
+              <FiShoppingCart className="sidebar-item-icon" />
+              <span>Compras y ventas</span>
             </NavLink>
             <NavLink
             to="/declarations/history"
+            onClick={onNavigate}
             className={({ isActive }) =>
               isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
             }
           >
-            Historial
+            <FiClock className="sidebar-item-icon" />
+            <span>Historial</span>
           </NavLink>
           </div>
         )}
 
         <NavLink
           to="/debtors"
+          onClick={onNavigate}
           className={({ isActive }) =>
             isActive ? 'sidebar-link active' : 'sidebar-link'
           }
         >
-          Deudores
+          <FiCreditCard className="sidebar-item-icon" />
+          <span>Deudores</span>
         </NavLink>
 
         {canManageUsers && (
@@ -111,7 +144,10 @@ const Sidebar = () => {
               className={`sidebar-group-button ${usersOpen ? 'open' : ''}`}
               onClick={() => setUsersOpen((prev) => !prev)}
             >
-              <span>Usuarios</span>
+              <span className="sidebar-group-label">
+                <FiBriefcase className="sidebar-item-icon" />
+                Usuarios
+              </span>
               <ChevronDownIcon />
             </button>
 
@@ -119,20 +155,24 @@ const Sidebar = () => {
               <div className="sidebar-submenu">
                 <NavLink
                   to="/users"
+                  onClick={onNavigate}
                   className={({ isActive }) =>
                     isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
                   }
                 >
-                  Gestionar usuarios
+                  <FiUsers className="sidebar-item-icon" />
+                  <span>Gestionar usuarios</span>
                 </NavLink>
 
                 <NavLink
                   to="/users/roles"
+                  onClick={onNavigate}
                   className={({ isActive }) =>
                     isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
                   }
                 >
-                  Gestionar roles
+                  <FiBarChart2 className="sidebar-item-icon" />
+                  <span>Gestionar roles</span>
                 </NavLink>
               </div>
             )}
