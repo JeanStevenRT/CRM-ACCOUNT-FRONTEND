@@ -1,0 +1,232 @@
+.history-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.history-header h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #111827;
+}
+
+.history-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+}
+
+.history-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 35, 68, 0.08);
+  padding: 20px;
+}
+
+.history-filters {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) 180px 140px auto;
+  gap: 16px;
+  align-items: start;
+}
+
+.history-client-search,
+.history-period-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-client-search label,
+.history-period-field label {
+  font-size: 14px;
+  color: #374151;
+  font-weight: 600;
+}
+
+.history-period-field input {
+  height: 42px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.history-period-field input:focus {
+  border-color: #2563eb;
+}
+
+.history-actions-top {
+  padding-top: 24px;
+}
+
+.history-actions-top .button,
+.history-export-actions .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.history-client-results {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 190px;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.history-client-item {
+  width: 100%;
+  border: none;
+  background-color: #ffffff;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.history-client-item:last-child {
+  border-bottom: none;
+}
+
+.history-client-item:hover,
+.history-client-item.active {
+  background-color: #eff6ff;
+}
+
+.history-client-item strong {
+  color: #111827;
+}
+
+.history-client-item span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.history-client-empty {
+  padding: 14px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.history-selected-client {
+  margin-top: 16px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  color: #374151;
+}
+
+.history-message {
+  margin-top: 14px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.history-export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.history-horizontal-wrapper {
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(15, 35, 68, 0.08);
+  padding: 18px;
+  overflow: hidden;
+}
+
+.history-horizontal-scroll {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 12px;
+  scroll-snap-type: x mandatory;
+}
+
+.history-horizontal-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+
+.history-horizontal-scroll::-webkit-scrollbar-track {
+  background-color: #eef2f7;
+  border-radius: 999px;
+}
+
+.history-horizontal-scroll::-webkit-scrollbar-thumb {
+  background-color: #94a3b8;
+  border-radius: 999px;
+}
+
+.history-month-card {
+  flex: 0 0 calc((100% - 36px) / 3);
+  min-width: 380px;
+  scroll-snap-align: start;
+  background-color: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.history-month-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.history-month-card-actions span {
+  font-weight: 800;
+  color: #0f2344;
+  text-transform: uppercase;
+}
+
+.history-month-card-actions button {
+  border: 1px solid #d1d5db;
+  background-color: #ffffff;
+  color: #0f2344;
+  border-radius: 9px;
+  padding: 7px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.history-month-card-actions button:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+@media (max-width: 1300px) {
+  .history-month-card {
+    flex-basis: calc((100% - 18px) / 2);
+  }
+}
+
+@media (max-width: 860px) {
+  .history-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .history-actions-top {
+    padding-top: 0;
+  }
+
+  .history-month-card {
+    flex-basis: 100%;
+    min-width: 320px;
+  }
+}

@@ -1,17 +1,19 @@
 import api from '../api/axios';
 
 export const getDebtorsRequest = async ({
-  anio,
-  mes,
+  clienteId = '',
+  anio = '',
+  mes = '',
   search = '',
   page = 1,
   limit = 10,
 }) => {
   const response = await api.get('/debtors', {
     params: {
-      anio,
-      mes,
+      clienteId: clienteId || undefined,
       search,
+      anio: anio || undefined,
+      mes: mes || undefined,
       page,
       limit,
     },
@@ -19,7 +21,6 @@ export const getDebtorsRequest = async ({
 
   return response.data;
 };
-
 export const getDebtorByIdRequest = async (id) => {
   const response = await api.get(`/debtors/${id}`);
   return response.data;

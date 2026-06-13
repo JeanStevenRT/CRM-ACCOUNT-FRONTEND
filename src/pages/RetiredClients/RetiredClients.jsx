@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FiEye } from 'react-icons/fi';
 
 import SearchInput from '../../components/common/SearchInput/SearchInput';
@@ -35,7 +35,7 @@ const RetiredClients = () => {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  const fetchRetiredClients = async ({
+  const fetchRetiredClients = useCallback(async ({
     page = 1,
     searchValue = debouncedSearch,
   } = {}) => {
@@ -58,7 +58,7 @@ const RetiredClients = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, pagination.limit]);
 
   const handleSearchChange = (value) => {
     setSearch(value);
@@ -101,7 +101,7 @@ const RetiredClients = () => {
       page: 1,
       searchValue: debouncedSearch,
     });
-  }, [debouncedSearch]);
+  }, [debouncedSearch, fetchRetiredClients]);
 
   return (
     <section className="retired-clients-page">

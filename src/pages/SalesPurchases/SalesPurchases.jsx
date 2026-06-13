@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FiTrash2, FiRefreshCw, FiSave } from 'react-icons/fi';
 
 import SearchInput from '../../components/common/SearchInput/SearchInput';
@@ -6,8 +7,9 @@ import Select from '../../components/common/Select/Select';
 import Button from '../../components/common/Button/Button';
 import IconButton from '../../components/common/IconButton/IconButton';
 
-import { getClientsRequest } from '../../services/clients.service';
+import { getClientsRequest, getClientByIdRequest } from '../../services/clients.service';
 import {
+  getDeclarationByIdRequest,
   getDeclarationsByClientRequest,
   recalculateDeclarationRequest,
 } from '../../services/declarations.service';
@@ -98,6 +100,8 @@ const SalesPurchases = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
+  const [searchParams] = useSearchParams();
+
   const debouncedClientSearch = useDebounce(clientSearch, 400);
 
   const salesTotals = useMemo(() => {
@@ -126,107 +130,146 @@ const SalesPurchases = () => {
     );
   }, [purchaseRows]);
 
-  const fetchClients = async () => {
-    try {
-      setLoadingClients(true);
+    const loadRowsByDeclaration = useCallback(async (declaration) => {
+    setSelectedDeclaration(declaration);
 
-      const response = await getClientsRequest({
-        search: debouncedClientSearch,
-        page: 1,
-        limit: 5,
-      });
+    const [salesResponse, purchasesResponse] = await Promise.all([
+        getSalesByDeclarationRequest(declaration.id),
+        getPurchasesByDeclarationRequest(declaration.id),
+    ]);
 
-      setClientResults(response.data);
-    } catch {
-      setClientResults([]);
-    } finally {
-      setLoadingClients(false);
-    }
-  };
+    const salesData = salesResponse.data || [];
+    const purchasesData = purchasesResponse.data || [];
 
-  useEffect(() => {
-    fetchClients();
-  }, [debouncedClientSearch]);
+    setSalesRows(
+        salesData.length > 0
+        ? salesData.map((item) => ({
+            id: item.id,
+            fecha: item.fecha ? item.fecha.slice(0, 10) : '',
+            serie: item.serie || '',
+            numero: item.numero || '',
+            tasa: String(Number(item.tasa)),
+            base: String(item.base || ''),
+            isNew: false,
+            }))
+        : [createEmptyRow()]
+    );
 
-  const handleSelectClient = (client) => {
-    setSelectedClient(client);
-    setClientSearch(`${client.nombres} ${client.apellidos || ''}`);
-    setSelectedDeclaration(null);
-    setSalesRows([createEmptyRow()]);
-    setPurchaseRows([createEmptyRow()]);
-    setMessage('');
-  };
+    setPurchaseRows(
+        purchasesData.length > 0
+        ? purchasesData.map((item) => ({
+            id: item.id,
+            fecha: item.fecha ? item.fecha.slice(0, 10) : '',
+            serie: item.serie || '',
+            numero: item.numero || '',
+            tasa: String(Number(item.tasa)),
+            base: String(item.base || ''),
+            isNew: false,
+            }))
+        : [createEmptyRow()]
+    );
+    }, []);
 
-  const loadDeclarationData = async () => {
+    const fetchClients = useCallback(async () => {
+        try {
+        setLoadingClients(true);
+
+        const response = await getClientsRequest({
+            search: debouncedClientSearch,
+            page: 1,
+            limit: 5,
+        });
+
+        setClientResults(response.data);
+        } catch {
+        setClientResults([]);
+        } finally {
+        setLoadingClients(false);
+        }
+    }, [debouncedClientSearch]);
+
+    useEffect(() => {
+        fetchClients();
+    }, [fetchClients]);
+
+    useEffect(() => {
+        const clientId = searchParams.get('clientId');
+        const month = searchParams.get('month');
+        const year = searchParams.get('year');
+        const declarationId = searchParams.get('declarationId');
+
+        if (!clientId || !month || !year || !declarationId) return;
+
+        const loadFromQueryParams = async () => {
+            try {
+            setLoadingDeclaration(true);
+            setMessage('');
+
+            const [client, declaration] = await Promise.all([
+                getClientByIdRequest(clientId),
+                getDeclarationByIdRequest(declarationId),
+            ]);
+
+            setSelectedClient(client);
+            setClientSearch(`${client.nombres} ${client.apellidos || ''}`);
+            setSelectedMonth(String(month));
+            setSelectedYear(String(year));
+
+            await loadRowsByDeclaration(declaration);
+
+            setMessage('Declaración cargada automáticamente.');
+            } catch (error) {
+            alert(error.response?.data?.message || 'Error al cargar la declaración');
+            } finally {
+            setLoadingDeclaration(false);
+            }
+        };
+
+    loadFromQueryParams(); }, [loadRowsByDeclaration, searchParams]);
+
+    const handleSelectClient = (client) => {
+        setSelectedClient(client);
+        setClientSearch(`${client.nombres} ${client.apellidos || ''}`);
+        setSelectedDeclaration(null);
+        setSalesRows([createEmptyRow()]);
+        setPurchaseRows([createEmptyRow()]);
+        setMessage('');
+    };
+
+    const loadDeclarationData = async () => {
     if (!selectedClient || !selectedMonth || !selectedYear) {
-      alert('Selecciona cliente, mes y año');
-      return;
+        alert('Selecciona cliente, mes y año');
+        return;
     }
 
     try {
-      setLoadingDeclaration(true);
-      setMessage('');
+        setLoadingDeclaration(true);
+        setMessage('');
 
-      const declarations = await getDeclarationsByClientRequest(selectedClient.id);
+        const declarations = await getDeclarationsByClientRequest(selectedClient.id);
 
-      const declaration = declarations.find((item) => {
+        const declaration = declarations.find((item) => {
         return (
-          Number(item.mes) === Number(selectedMonth) &&
-          Number(item.anio) === Number(selectedYear)
+            Number(item.mes) === Number(selectedMonth) &&
+            Number(item.anio) === Number(selectedYear)
         );
-      });
+        });
 
-      if (!declaration) {
+        if (!declaration) {
         setSelectedDeclaration(null);
         setSalesRows([createEmptyRow()]);
         setPurchaseRows([createEmptyRow()]);
         setMessage('No existe declaración para ese cliente, mes y año. Primero crea la declaración mensual.');
         return;
-      }
+        }
 
-      setSelectedDeclaration(declaration);
-
-      const [salesResponse, purchasesResponse] = await Promise.all([
-        getSalesByDeclarationRequest(declaration.id),
-        getPurchasesByDeclarationRequest(declaration.id),
-      ]);
-
-      const salesData = salesResponse.data || [];
-      const purchasesData = purchasesResponse.data || [];
-
-      setSalesRows(
-        salesData.length > 0
-          ? salesData.map((item) => ({
-              id: item.id,
-              fecha: item.fecha ? item.fecha.slice(0, 10) : '',
-              serie: item.serie || '',
-              numero: item.numero || '',
-              tasa: String(Number(item.tasa)),
-              base: String(item.base || ''),
-              isNew: false,
-            }))
-          : [createEmptyRow()]
-      );
-
-      setPurchaseRows(
-        purchasesData.length > 0
-          ? purchasesData.map((item) => ({
-              id: item.id,
-              fecha: item.fecha ? item.fecha.slice(0, 10) : '',
-              serie: item.serie || '',
-              numero: item.numero || '',
-              tasa: String(Number(item.tasa)),
-              base: String(item.base || ''),
-              isNew: false,
-            }))
-          : [createEmptyRow()]
-      );
+        await loadRowsByDeclaration(declaration);
     } catch (error) {
-      alert(error.response?.data?.message || 'Error al cargar compras y ventas');
+        alert(error.response?.data?.message || 'Error al cargar compras y ventas');
     } finally {
-      setLoadingDeclaration(false);
+        setLoadingDeclaration(false);
     }
-  };
+    };
 
   const updateRow = (type, index, field, value) => {
     const setter = type === 'sales' ? setSalesRows : setPurchaseRows;

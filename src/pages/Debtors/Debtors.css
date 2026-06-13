@@ -33,7 +33,6 @@
 
 .debtors-filters {
   display: flex;
-  align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
@@ -164,4 +163,102 @@
   text-align: center;
   color: #6b7280;
   padding: 28px;
+}
+
+.debtors-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.debtors-summary span + span {
+  padding-left: 14px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.debtors-filters .button {
+  height: 42px;
+}
+
+.debtors-toolbar {
+  align-items: flex-start;
+}
+
+.debtors-filters {
+  flex: 1;
+}
+
+.debtors-client-search {
+  width: 100%;
+  max-width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.debtors-client-results {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: 190px;
+  overflow-y: auto;
+  background-color: #ffffff;
+}
+
+.debtors-client-item {
+  width: 100%;
+  border: none;
+  background-color: #ffffff;
+  padding: 12px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.debtors-client-item:last-child {
+  border-bottom: none;
+}
+
+.debtors-client-item:hover,
+.debtors-client-item.active {
+  background-color: #eff6ff;
+}
+
+.debtors-client-item strong {
+  color: #111827;
+}
+
+.debtors-client-item span {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.debtors-client-empty {
+  padding: 14px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.debtors-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.debtors-summary span + span {
+  padding-left: 14px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.debtors-filters .button {
+  height: 42px;
 }

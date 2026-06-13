@@ -4,7 +4,15 @@ import { AuthContext } from './auth.context';
 
 const getStoredUser = () => {
   const savedUser = localStorage.getItem('crm_user');
-  return savedUser ? JSON.parse(savedUser) : null;
+
+  if (!savedUser) return null;
+
+  try {
+    return JSON.parse(savedUser);
+  } catch {
+    localStorage.removeItem('crm_user');
+    return null;
+  }
 };
 
 export const AuthProvider = ({ children }) => {

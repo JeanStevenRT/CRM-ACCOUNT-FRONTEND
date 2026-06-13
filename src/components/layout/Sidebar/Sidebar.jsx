@@ -80,6 +80,14 @@ const Sidebar = () => {
             >
               Compras y ventas
             </NavLink>
+            <NavLink
+            to="/declarations/history"
+            className={({ isActive }) =>
+              isActive ? 'sidebar-sublink active' : 'sidebar-sublink'
+            }
+          >
+            Historial
+          </NavLink>
           </div>
         )}
 

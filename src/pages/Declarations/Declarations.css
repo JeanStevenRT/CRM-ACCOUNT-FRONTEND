@@ -133,3 +133,28 @@
 .declaration-detail-full {
   grid-column: 1 / -1;
 }
+
+.delete-declaration-message {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.declarations-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.declarations-summary span + span {
+  padding-left: 14px;
+  border-left: 1px solid #e5e7eb;
+}
+
+.delete-declaration-message {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+}

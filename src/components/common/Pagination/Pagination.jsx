@@ -1,5 +1,4 @@
 import './Pagination.css';
-import { FaAngleRight, FaAngleLeft } from 'react-icons/fa';
 
 const getPaginationItems = (page, totalPages) => {
   const maxVisiblePages = 5;
@@ -48,7 +47,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
         disabled={isFirstPage}
         onClick={() => onPageChange(page - 1)}
       >
-        <FaAngleLeft />
+        {'<'}
       </button>
 
       <div className="pagination-pages">
@@ -84,7 +83,7 @@ const Pagination = ({ page, totalPages, onPageChange }) => {
         disabled={isLastPage}
         onClick={() => onPageChange(page + 1)}
       >
-        <FaAngleRight />
+        {'>'}
       </button>
     </div>
   );

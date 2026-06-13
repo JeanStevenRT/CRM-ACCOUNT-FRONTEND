@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import SearchInput from '../../components/common/SearchInput/SearchInput';
 import Pagination from '../../components/common/Pagination/Pagination';
 import Button from '../../components/common/Button/Button';
@@ -41,7 +41,7 @@ const Clients = () => {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  const fetchClients = async ({ page = 1, searchValue = debouncedSearch } = {}) => {
+  const fetchClients = useCallback(async ({ page = 1, searchValue = debouncedSearch } = {}) => {
     try {
       setLoading(true);
       setError('');
@@ -59,7 +59,7 @@ const Clients = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, pagination.limit]);
 
   const handleSearchChange = (value) => {
     setSearch(value);
@@ -165,7 +165,7 @@ const Clients = () => {
       page: 1,
       searchValue: debouncedSearch,
     });
-  }, [debouncedSearch]);
+  }, [debouncedSearch, fetchClients]);
 
   return (
     <section className="clients-page">

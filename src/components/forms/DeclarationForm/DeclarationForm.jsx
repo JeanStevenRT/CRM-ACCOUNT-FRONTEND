@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Button from '../../common/Button/Button';
 import SearchInput from '../../common/SearchInput/SearchInput';
 import Select from '../../common/Select/Select';
@@ -65,7 +65,7 @@ const DeclarationForm = ({
 
   const debouncedClientSearch = useDebounce(clientSearch, 400);
 
-  const fetchClients = async () => {
+  const fetchClients = useCallback(async () => {
     try {
       setLoadingClients(true);
 
@@ -81,11 +81,11 @@ const DeclarationForm = ({
     } finally {
       setLoadingClients(false);
     }
-  };
+  }, [debouncedClientSearch]);
 
   useEffect(() => {
     fetchClients();
-  }, [debouncedClientSearch]);
+  }, [fetchClients]);
 
   const handleChange = (event) => {
     const { name, value, type, checked } = event.target;

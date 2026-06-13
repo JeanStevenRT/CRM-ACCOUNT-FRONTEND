@@ -1,10 +1,12 @@
 .sidebar {
   width: 250px;
   min-width: 250px;
-  min-height: 100vh;
+  height: 100vh;
   background-color: #0f2344;
   color: #ffffff;
   padding: 20px 14px;
+  overflow-y: auto;
+  flex-shrink: 0;
 }
 
 .sidebar-logo {

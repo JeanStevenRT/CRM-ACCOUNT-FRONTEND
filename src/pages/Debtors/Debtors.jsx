@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FiEye, FiCheckCircle } from 'react-icons/fi';
 
 import SearchInput from '../../components/common/SearchInput/SearchInput';
@@ -7,6 +7,8 @@ import Button from '../../components/common/Button/Button';
 import IconButton from '../../components/common/IconButton/IconButton';
 import Modal from '../../components/common/Modal/Modal';
 import Pagination from '../../components/common/Pagination/Pagination';
+
+import { getClientsRequest } from '../../services/clients.service';
 
 import {
   getDebtorsRequest,
@@ -34,16 +36,18 @@ const monthOptions = [
   { value: '12', label: 'Diciembre' },
 ];
 
-const currentDate = new Date();
+const currentYear = String(new Date().getFullYear());
 
 const Debtors = () => {
   const [debtors, setDebtors] = useState([]);
 
   const [search, setSearch] = useState('');
-  const [selectedMonth, setSelectedMonth] = useState(
-    String(currentDate.getMonth() + 1)
-  );
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+  const [clientResults, setClientResults] = useState([]);
+  const [selectedClient, setSelectedClient] = useState(null);
+  const [loadingClients, setLoadingClients] = useState(false);
+
+  const [selectedMonth, setSelectedMonth] = useState('');
+  const [selectedYear, setSelectedYear] = useState(currentYear);
 
   const [pagination, setPagination] = useState({
     total: 0,
@@ -61,24 +65,42 @@ const Debtors = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const debouncedSearch = useDebounce(search, 400);
+  const debouncedClientSearch = useDebounce(search, 400);
 
-  const fetchDebtors = async ({
-    page = 1,
-    searchValue = debouncedSearch,
-    monthValue = selectedMonth,
-    yearValue = selectedYear,
+  const fetchClients = useCallback(async () => {
+    try {
+      setLoadingClients(true);
+
+      const response = await getClientsRequest({
+        search: debouncedClientSearch,
+        page: 1,
+        limit: 5,
+      });
+
+      setClientResults(response.data);
+    } catch {
+      setClientResults([]);
+    } finally {
+      setLoadingClients(false);
+    }
+  }, [debouncedClientSearch]);
+
+  const fetchDebtors = useCallback(async ({
+    page = 1,  
+    clienteIdValue = '',
+    searchValue = '',
+    monthValue = '',
+    yearValue = currentYear,
   } = {}) => {
-    if (!monthValue || !yearValue) return;
-
     try {
       setLoading(true);
       setError('');
 
       const response = await getDebtorsRequest({
+        clienteId: clienteIdValue,
         anio: yearValue,
         mes: monthValue,
-        search: searchValue,
+        search: clienteIdValue ? '' : searchValue,
         page,
         limit: pagination.limit,
       });
@@ -90,10 +112,22 @@ const Debtors = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.limit]);
 
   const handleSearchChange = (value) => {
     setSearch(value);
+    setSelectedClient(null);
+
+    setPagination((prev) => ({
+      ...prev,
+      page: 1,
+    }));
+  };
+
+  const handleSelectClient = (client) => {
+    setSelectedClient(client);
+    setSearch(`${client.nombres} ${client.apellidos || ''}`);
+
     setPagination((prev) => ({
       ...prev,
       page: 1,
@@ -102,6 +136,7 @@ const Debtors = () => {
 
   const handleMonthChange = (value) => {
     setSelectedMonth(value);
+
     setPagination((prev) => ({
       ...prev,
       page: 1,
@@ -110,20 +145,46 @@ const Debtors = () => {
 
   const handleYearChange = (event) => {
     setSelectedYear(event.target.value);
+
     setPagination((prev) => ({
       ...prev,
       page: 1,
     }));
   };
 
-  const handlePageChange = (nextPage) => {
+ const handleSearchDebts = () => {
+  fetchDebtors({
+    page: 1,
+    clienteIdValue: selectedClient?.id || '',
+    searchValue: search,
+    monthValue: selectedMonth,
+    yearValue: selectedYear,
+  });
+};
+    const handleClearFilters = () => {
+    setSearch('');
+    setSelectedClient(null);
+    setSelectedMonth('');
+    setSelectedYear(currentYear);
+
     fetchDebtors({
-      page: nextPage,
-      searchValue: debouncedSearch,
-      monthValue: selectedMonth,
-      yearValue: selectedYear,
+        page: 1,
+        clienteIdValue: '',
+        searchValue: '',
+        monthValue: '',
+        yearValue: currentYear,
     });
-  };
+    };
+
+  const handlePageChange = (nextPage) => {
+  fetchDebtors({
+    page: nextPage,
+    clienteIdValue: selectedClient?.id || '',
+    searchValue: search,
+    monthValue: selectedMonth,
+    yearValue: selectedYear,
+  });
+};
 
   const handleOpenDetail = async (id) => {
     try {
@@ -160,11 +221,12 @@ const Debtors = () => {
       closeModals();
 
       await fetchDebtors({
-        page: pagination.page,
-        searchValue: debouncedSearch,
-        monthValue: selectedMonth,
-        yearValue: selectedYear,
-      });
+            page: pagination.page,
+            clienteIdValue: selectedClient?.id || '',
+            searchValue: search,
+            monthValue: selectedMonth,
+            yearValue: selectedYear,
+        });
     } catch (error) {
       alert(error.response?.data?.message || 'Error al marcar deuda como pagada');
     } finally {
@@ -173,13 +235,17 @@ const Debtors = () => {
   };
 
   useEffect(() => {
+    fetchClients();
+  }, [fetchClients]);
+
+  useEffect(() => {
     fetchDebtors({
       page: 1,
-      searchValue: debouncedSearch,
-      monthValue: selectedMonth,
-      yearValue: selectedYear,
+      searchValue: '',
+      monthValue: '',
+      yearValue: currentYear,
     });
-  }, [debouncedSearch, selectedMonth, selectedYear]);
+  }, [fetchDebtors]);
 
   return (
     <section className="debtors-page">
@@ -193,16 +259,52 @@ const Debtors = () => {
       <div className="debtors-card">
         <div className="debtors-toolbar">
           <div className="debtors-filters">
-            <SearchInput
-              value={search}
-              onChange={handleSearchChange}
-              placeholder="Buscar por cliente, RUC o DNI"
-            />
+            <div className="debtors-client-search">
+              <SearchInput
+                value={search}
+                onChange={handleSearchChange}
+                placeholder="Buscar cliente, RUC o DNI"
+              />
+
+              <div className="debtors-client-results">
+                {loadingClients ? (
+                  <div className="debtors-client-empty">
+                    Buscando clientes...
+                  </div>
+                ) : clientResults.length === 0 ? (
+                  <div className="debtors-client-empty">
+                    No se encontraron clientes
+                  </div>
+                ) : (
+                  clientResults.map((client) => (
+                    <button
+                      type="button"
+                      key={client.id}
+                      className={
+                        selectedClient?.id === client.id ||
+                        selectedClient?.id === String(client.id)
+                          ? 'debtors-client-item active'
+                          : 'debtors-client-item'
+                      }
+                      onClick={() => handleSelectClient(client)}
+                    >
+                      <strong>
+                        {client.nombres} {client.apellidos}
+                      </strong>
+
+                      <span>
+                        RUC: {client.ruc || '-'} | DNI: {client.dni || '-'}
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
 
             <Select
               value={selectedMonth}
               onChange={handleMonthChange}
-              placeholder="Seleccionar mes"
+              placeholder="Todos los meses"
               options={monthOptions}
             />
 
@@ -211,14 +313,36 @@ const Debtors = () => {
               type="number"
               value={selectedYear}
               onChange={handleYearChange}
+              placeholder="Todos los años"
               min="2020"
             />
+
+            <Button onClick={handleSearchDebts} disabled={loading}>
+              {loading ? 'Buscando...' : 'Buscar deudas'}
+            </Button>
+
+            <Button variant="secondary" onClick={handleClearFilters}>
+              Limpiar
+            </Button>
           </div>
 
-          <span className="debtors-total">
-            Total: {pagination.total}
-          </span>
+          <div className="debtors-summary">
+            <span>Total: {pagination.total}</span>
+            <span>
+              Página {pagination.page} de {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
+
+        {selectedClient && (
+          <div className="debtors-selected-client">
+            <strong>
+              Cliente seleccionado: {selectedClient.nombres} {selectedClient.apellidos}
+            </strong>
+            <span>RUC: {selectedClient.ruc || '-'}</span>
+            <span>DNI: {selectedClient.dni || '-'}</span>
+          </div>
+        )}
 
         {error && (
           <div className="debtors-error">
@@ -252,7 +376,7 @@ const Debtors = () => {
               ) : debtors.length === 0 ? (
                 <tr>
                   <td colSpan="9" className="table-empty">
-                    No se encontraron deudores para este periodo
+                    No se encontraron deudores
                   </td>
                 </tr>
               ) : (

@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
-import { FiEye, FiRefreshCw } from 'react-icons/fi';
-
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { FiEye, FiShoppingCart, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import EditDeclarationForm from '../../components/forms/EditDeclarationForm/EditDeclarationForm';
 import SearchInput from '../../components/common/SearchInput/SearchInput';
 import Select from '../../components/common/Select/Select';
 import Button from '../../components/common/Button/Button';
@@ -13,6 +14,8 @@ import {
   getDeclarationsRequest,
   getDeclarationByIdRequest,
   createDeclarationRequest,
+    updateDeclarationRequest,
+  deleteDeclarationRequest,
   recalculateDeclarationRequest,
 } from '../../services/declarations.service';
 
@@ -37,6 +40,8 @@ const monthOptions = [
 ];
 
 const Declarations = () => {
+  const navigate = useNavigate();
+
   const [declarations, setDeclarations] = useState([]);
 
   const [search, setSearch] = useState('');
@@ -50,8 +55,13 @@ const Declarations = () => {
   });
 
   const [selectedDeclaration, setSelectedDeclaration] = useState(null);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [declarationToDelete, setDeclarationToDelete] = useState(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+    const [declarationToEdit, setDeclarationToEdit] = useState(null);
+
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [loadingDetail, setLoadingDetail] = useState(false);
@@ -60,9 +70,12 @@ const Declarations = () => {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  const fetchDeclarations = async ({ page = 1, searchValue = debouncedSearch, monthValue = selectedMonth, } = {}) => {
+  const fetchDeclarations = useCallback(async ({
+    page = 1,
+    searchValue = debouncedSearch,
+    monthValue = selectedMonth,
+  } = {}) => {
     try {
-
       setLoading(true);
       setError('');
 
@@ -75,19 +88,16 @@ const Declarations = () => {
 
       setDeclarations(response.data);
       setPagination(response.pagination);
-
     } catch (error) {
-
       setError(error.response?.data?.message || 'Error al cargar declaraciones');
-
     } finally {
-
       setLoading(false);
     }
-  };
+  }, [debouncedSearch, selectedMonth, pagination.limit]);
 
   const handleSearchChange = (value) => {
     setSearch(value);
+
     setPagination((prev) => ({
       ...prev,
       page: 1,
@@ -96,6 +106,7 @@ const Declarations = () => {
 
   const handleMonthChange = (value) => {
     setSelectedMonth(value);
+
     setPagination((prev) => ({
       ...prev,
       page: 1,
@@ -108,6 +119,26 @@ const Declarations = () => {
       searchValue: debouncedSearch,
       monthValue: selectedMonth,
     });
+  };
+
+  const handleCreateDeclaration = async (formData) => {
+    try {
+      setActionLoading(true);
+
+      await createDeclarationRequest(formData);
+
+      setCreateModalOpen(false);
+
+      await fetchDeclarations({
+        page: 1,
+        searchValue: debouncedSearch,
+        monthValue: selectedMonth,
+      });
+    } catch (error) {
+      alert(error.response?.data?.message || 'Error al crear declaración');
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const handleOpenDetail = async (id) => {
@@ -126,55 +157,93 @@ const Declarations = () => {
     }
   };
 
-  const handleRecalculate = async (id) => {
+  const handleGoToSalesPurchases = (declaration) => {
+    const params = new URLSearchParams({
+      clientId: declaration.cliente_id,
+      month: declaration.mes,
+      year: declaration.anio,
+      declarationId: declaration.id,
+    });
+
+    navigate(`/declarations/sales-purchases?${params.toString()}`);
+  };
+
+  const openDeleteModal = (declaration) => {
+    setDeclarationToDelete(declaration);
+    setDeleteModalOpen(true);
+  };
+
+  const closeDeleteModal = () => {
+    setDeclarationToDelete(null);
+    setDeleteModalOpen(false);
+  };
+
+  const handleConfirmDelete = async () => {
     try {
       setActionLoading(true);
 
-      await recalculateDeclarationRequest(id);
+      await deleteDeclarationRequest(declarationToDelete.id);
+
+      closeDeleteModal();
 
       await fetchDeclarations({
         page: pagination.page,
         searchValue: debouncedSearch,
         monthValue: selectedMonth,
       });
-
-      if (
-        selectedDeclaration?.id === id ||
-        selectedDeclaration?.id === String(id)
-      ) {
-        const response = await getDeclarationByIdRequest(id);
-        setSelectedDeclaration(response);
-      }
     } catch (error) {
-      alert(error.response?.data?.message || 'Error al recalcular declaración');
+      alert(error.response?.data?.message || 'Error al eliminar declaración');
     } finally {
       setActionLoading(false);
     }
   };
-    const handleCreateDeclaration = async (formData) => {
+
+  const closeDetailModal = () => {
+    setSelectedDeclaration(null);
+    setDetailModalOpen(false);
+  };
+
+  const openEditModal = async (id) => {
+  try {
+    setActionLoading(true);
+
+    const response = await getDeclarationByIdRequest(id);
+
+    setDeclarationToEdit(response);
+    setEditModalOpen(true);
+  } catch (error) {
+    alert(error.response?.data?.message || 'Error al obtener declaración');
+  } finally {
+    setActionLoading(false);
+  }
+};
+
+const closeEditModal = () => {
+  setDeclarationToEdit(null);
+  setEditModalOpen(false);
+};
+
+    const handleUpdateDeclaration = async (formData) => {
     try {
         setActionLoading(true);
 
-        await createDeclarationRequest(formData);
+        await updateDeclarationRequest(declarationToEdit.id, formData);
 
-        setCreateModalOpen(false);
+        await recalculateDeclarationRequest(declarationToEdit.id);
+
+        closeEditModal();
 
         await fetchDeclarations({
-        page: 1,
+        page: pagination.page,
         searchValue: debouncedSearch,
         monthValue: selectedMonth,
         });
     } catch (error) {
-        alert(error.response?.data?.message || 'Error al crear declaración');
+        alert(error.response?.data?.message || 'Error al actualizar declaración');
     } finally {
         setActionLoading(false);
     }
     };
-
-  const closeModal = () => {
-    setSelectedDeclaration(null);
-    setDetailModalOpen(false);
-  };
 
   useEffect(() => {
     fetchDeclarations({
@@ -182,7 +251,7 @@ const Declarations = () => {
       searchValue: debouncedSearch,
       monthValue: selectedMonth,
     });
-  }, [debouncedSearch, selectedMonth]);
+  }, [debouncedSearch, selectedMonth, fetchDeclarations]);
 
   return (
     <section className="declarations-page">
@@ -193,7 +262,7 @@ const Declarations = () => {
         </div>
 
         <Button onClick={() => setCreateModalOpen(true)}>
-            Nueva declaración
+          Nueva declaración
         </Button>
       </div>
 
@@ -214,9 +283,12 @@ const Declarations = () => {
             />
           </div>
 
-          <span className="declarations-total">
-            Total: {pagination.total}
-          </span>
+          <div className="declarations-summary">
+            <span>Total: {pagination.total}</span>
+            <span>
+              Página {pagination.page} de {pagination.totalPages || 1}
+            </span>
+          </div>
         </div>
 
         {error && (
@@ -284,14 +356,29 @@ const Declarations = () => {
                         >
                           <FiEye />
                         </IconButton>
+                        <IconButton
+                            title="Editar declaración"
+                            variant="edit"
+                            disabled={actionLoading}
+                            onClick={() => openEditModal(item.id)}
+                            >
+                            <FiEdit2 />
+                        </IconButton>
 
                         <IconButton
-                          title="Recalcular declaración"
-                          variant="edit"
-                          disabled={actionLoading}
-                          onClick={() => handleRecalculate(item.id)}
+                          title="Ver compras y ventas"
+                          variant="view"
+                          onClick={() => handleGoToSalesPurchases(item)}
                         >
-                          <FiRefreshCw />
+                          <FiShoppingCart />
+                        </IconButton>
+                        <IconButton
+                          title="Eliminar declaración"
+                          variant="danger"
+                          disabled={actionLoading}
+                          onClick={() => openDeleteModal(item)}
+                        >
+                          <FiTrash2 />
                         </IconButton>
                       </div>
                     </td>
@@ -308,36 +395,37 @@ const Declarations = () => {
           onPageChange={handlePageChange}
         />
       </div>
+
       <Modal
         open={createModalOpen}
         title="Nueva declaración"
         onClose={() => setCreateModalOpen(false)}
         size="lg"
-        >
+      >
         <DeclarationForm
-            loading={actionLoading}
-            submitText="Crear declaración"
-            onSubmit={handleCreateDeclaration}
+          loading={actionLoading}
+          submitText="Crear declaración"
+          onSubmit={handleCreateDeclaration}
         />
       </Modal>
+
       <Modal
         open={detailModalOpen}
         title="Detalle de declaración"
-        onClose={closeModal}
+        onClose={closeDetailModal}
         size="lg"
         footer={
           <>
             {selectedDeclaration && (
               <Button
-                variant="primary"
-                disabled={actionLoading}
-                onClick={() => handleRecalculate(selectedDeclaration.id)}
+                variant="secondary"
+                onClick={() => handleGoToSalesPurchases(selectedDeclaration)}
               >
-                {actionLoading ? 'Recalculando...' : 'Recalcular'}
+                Ver compras y ventas
               </Button>
             )}
 
-            <Button variant="secondary" onClick={closeModal}>
+            <Button variant="secondary" onClick={closeDetailModal}>
               Cerrar
             </Button>
           </>
@@ -380,7 +468,7 @@ const Declarations = () => {
             </div>
 
             <div>
-              <span>Tasa IR</span>
+              <span>Tasa IR aplicada</span>
               <strong>{selectedDeclaration.tasa_ir || 0}%</strong>
             </div>
 
@@ -456,6 +544,63 @@ const Declarations = () => {
           </div>
         ) : (
           <p>No hay datos para mostrar.</p>
+        )}
+      </Modal>
+        <Modal
+            open={editModalOpen}
+            title="Editar declaración"
+            onClose={closeEditModal}
+            size="lg"
+            >
+            {declarationToEdit && (
+                <EditDeclarationForm
+                initialValues={declarationToEdit}
+                loading={actionLoading}
+                submitText="Actualizar declaración"
+                onSubmit={handleUpdateDeclaration}
+                />
+            )}
+        </Modal>
+      <Modal
+        open={deleteModalOpen}
+        title="Eliminar declaración"
+        onClose={closeDeleteModal}
+        size="sm"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={closeDeleteModal}
+              disabled={actionLoading}
+            >
+              Cancelar
+            </Button>
+
+            <Button
+              variant="danger"
+              onClick={handleConfirmDelete}
+              disabled={actionLoading}
+            >
+              {actionLoading ? 'Eliminando...' : 'Sí, eliminar'}
+            </Button>
+          </>
+        }
+      >
+        {declarationToDelete && (
+          <p className="delete-declaration-message">
+            ¿Seguro que deseas eliminar la declaración de{' '}
+            <strong>
+              {declarationToDelete.nombres} {declarationToDelete.apellidos}
+            </strong>{' '}
+            correspondiente a{' '}
+            <strong>
+              {getMonthName(declarationToDelete.mes)} {declarationToDelete.anio}
+            </strong>
+            ?
+            <br />
+            <br />
+            Esta acción también eliminará sus ventas y compras asociadas.
+          </p>
         )}
       </Modal>
     </section>
