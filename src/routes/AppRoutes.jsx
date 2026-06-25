@@ -15,6 +15,7 @@ const Debtors = lazy(() => import('../pages/Debtors/Debtors'));
 const History = lazy(() => import('../pages/History/History'));
 const Users = lazy(() => import('../pages/Users/Users.jsx'));
 const Roles = lazy(() => import('../pages/Roles/Roles.jsx'));
+const Control = lazy(() => import('../pages/Control/Control.jsx'));
 
 const AppRoutes = () => {
   return (
@@ -35,6 +36,7 @@ const AppRoutes = () => {
             <Route path="/declarations/history" element={<History />} />
             <Route path="/users" element={<Users />} />
             <Route path="/users/roles" element={<Roles />} />
+            <Route path="/control" element={<Control />} />
           </Route>
         </Route>
 

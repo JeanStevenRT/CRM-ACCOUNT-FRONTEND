@@ -206,7 +206,7 @@ const Clients = () => {
                 <tr>
                     <th>Cliente</th>
                     <th>RUC</th>
-                    <th>DNI</th>
+                    <th>Documento</th>
                     <th>Teléfono</th>
                     <th>Tipo</th>
                     <th>Régimen</th>
@@ -237,7 +237,10 @@ const Clients = () => {
                         <small>{client.correo || 'Sin correo'}</small>
                         </td>
                         <td>{client.ruc || '-'}</td>
-                        <td>{client.dni || '-'}</td>
+                        <td>
+                          <span className="doc-type-badge">{client.tipo_documento || 'DNI'}</span>
+                          {' '}{client.dni || '-'}
+                        </td>
                         <td>{client.telefono || '-'}</td>
                         <td>{client.tipo_cliente || '-'}</td>
                         <td>{client.regimen || '-'}</td>
@@ -321,7 +324,7 @@ const Clients = () => {
             </div>
 
             <div>
-              <span>DNI</span>
+              <span>{selectedClient.tipo_documento === 'CARNET_EXTRANJERIA' ? 'Carné Extranjería' : selectedClient.tipo_documento === 'PASAPORTE' ? 'Pasaporte' : 'DNI'}</span>
               <strong>{selectedClient.dni || '-'}</strong>
             </div>
 

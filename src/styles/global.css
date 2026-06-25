@@ -76,6 +76,11 @@ li {
   font-family: var(--font-family-body);
 }
 
+/* Todos los datos en tablas en mayúscula */
+td {
+  text-transform: uppercase;
+}
+
 label,
 button,
 input,
@@ -88,3 +93,18 @@ input::placeholder,
 textarea::placeholder {
   font-family: var(--font-family-heading);
 }
+
+/* Badge tipo de documento en tablas */
+.doc-type-badge {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #e0e7ff;
+  color: #3730a3;
+  letter-spacing: 0.03em;
+  vertical-align: middle;
+  margin-right: 2px;
+}
+

@@ -12,6 +12,7 @@ import {
   FiShoppingCart,
   FiUserCheck,
   FiUsers,
+  FiSliders,
 } from 'react-icons/fi';
 import { ChevronDownIcon } from '../../common/Icons/Icons';
 import { useAuth } from '../../../hooks/useAuth';
@@ -135,6 +136,17 @@ const Sidebar = ({ open = true, onNavigate }) => {
         >
           <FiCreditCard className="sidebar-item-icon" />
           <span>Deudores</span>
+        </NavLink>
+
+        <NavLink
+          to="/control"
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            isActive ? 'sidebar-link active' : 'sidebar-link'
+          }
+        >
+          <FiSliders className="sidebar-item-icon" />
+          <span>Control interno</span>
         </NavLink>
 
         {canManageUsers && (
